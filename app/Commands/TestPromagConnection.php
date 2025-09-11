@@ -4,7 +4,8 @@ namespace App\Commands;
 
 use CodeIgniter\CLI\BaseCommand;
 use CodeIgniter\CLI\CLI;
-use App\Models\PromagUserModel;
+use App\Models\ArtimuUserModel;
+
 
 class TestPromagConnection extends BaseCommand
 {
@@ -44,22 +45,22 @@ class TestPromagConnection extends BaseCommand
     public function run(array $params)
     {
         try {
-            CLI::write('Testing Promag database connection...', 'green');
-            
-            $promagUserModel = new PromagUserModel();
-            
+            CLI::write('Testing Artimu database connection...', 'green');
+
+            $artimuUserModel = new ArtimuUserModel();
+
             // Test connection by counting users
-            $userCount = $promagUserModel->countAllResults();
-            CLI::write("Total users in Promag database: {$userCount}", 'yellow');
-            
+            $userCount = $artimuUserModel->countAllResults();
+            CLI::write("Total users in Artimu database: {$userCount}", 'yellow');
+
             // Test specific user validation from the provided sample data
             $testUserId = '9999999999';
             $testEmail = 'adminwru4@gmail.com';
-            
+
             CLI::write("Testing user validation with ID: {$testUserId} and Email: {$testEmail}", 'cyan');
-            
-            $user = $promagUserModel->validateUserCredentials($testUserId, $testEmail);
-            
+
+            $user = $artimuUserModel->validateUserCredentials($testUserId, $testEmail);
+
             if ($user) {
                 CLI::write("✓ User validation SUCCESSFUL", 'green');
                 CLI::write("  - User ID: {$user['id']}", 'white');
@@ -69,15 +70,15 @@ class TestPromagConnection extends BaseCommand
             } else {
                 CLI::write("✗ User validation FAILED", 'red');
             }
-            
+
             // Test another user from sample data
             $testUserId2 = '1000000001';
             $testEmail2 = 'dputra@wru.local';
-            
+
             CLI::write("Testing another user with ID: {$testUserId2} and Email: {$testEmail2}", 'cyan');
-            
-            $user2 = $promagUserModel->validateUserCredentials($testUserId2, $testEmail2);
-            
+
+            $user2 = $artimuUserModel->validateUserCredentials($testUserId2, $testEmail2);
+
             if ($user2) {
                 CLI::write("✓ Second user validation SUCCESSFUL", 'green');
                 CLI::write("  - User ID: {$user2['id']}", 'white');
@@ -87,19 +88,18 @@ class TestPromagConnection extends BaseCommand
             } else {
                 CLI::write("✗ Second user validation FAILED", 'red');
             }
-            
+
             // Test invalid credentials
             CLI::write("Testing invalid credentials...", 'cyan');
-            $invalidUser = $promagUserModel->validateUserCredentials('999999', 'invalid@email.com');
-            
+            $invalidUser = $artimuUserModel->validateUserCredentials('999999', 'invalid@email.com');
+
             if (!$invalidUser) {
                 CLI::write("✓ Invalid credentials correctly rejected", 'green');
             } else {
                 CLI::write("✗ Invalid credentials incorrectly accepted", 'red');
             }
-            
+
             CLI::write("Promag database test completed!", 'green');
-            
         } catch (\Exception $e) {
             CLI::write('Error: ' . $e->getMessage(), 'red');
             CLI::write('Stack trace: ' . $e->getTraceAsString(), 'red');

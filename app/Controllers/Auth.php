@@ -3,17 +3,17 @@
 namespace App\Controllers;
 
 use App\Models\AdminModel;
-use App\Models\PromagUserModel;
+use App\Models\ArtimuUserModel;
 
 class Auth extends BaseController
 {
     protected $adminModel;
-    protected $promagUserModel;
+    protected $artimuUserModel;
 
     public function __construct()
     {
         $this->adminModel = new AdminModel();
-        $this->promagUserModel = new PromagUserModel();
+        $this->artimuUserModel = new ArtimuUserModel();
     }
 
     public function index()
@@ -21,15 +21,15 @@ class Auth extends BaseController
         if (session()->get('admin_logged_in')) {
             return redirect()->to('/dashboard');
         }
-        
+
         // Check for remember me cookie
         if (isset($_COOKIE['remember_admin'])) {
             $cookieData = json_decode(base64_decode($_COOKIE['remember_admin']), true);
-            
+
             if ($cookieData && isset($cookieData['admin_id'])) {
                 // Verify admin still exists in database
                 $admin = $this->adminModel->find($cookieData['admin_id']);
-                
+
                 if ($admin) {
                     // Auto-login the user
                     session()->set([
@@ -39,12 +39,12 @@ class Auth extends BaseController
                         'admin_email' => $admin['email'],
                         'admin_logged_in' => true
                     ]);
-                    
+
                     return redirect()->to('/dashboard');
                 }
             }
         }
-        
+
         return view('auth/login');
     }
 
@@ -80,21 +80,21 @@ class Auth extends BaseController
                     'admin_email' => $admin['email'],
                     'admin_logged_in' => true
                 ];
-                
+
                 session()->set($sessionData);
-                
+
                 // Handle Remember Me functionality
                 if ($rememberMe) {
                     // Set longer session lifetime (30 days)
                     session()->setTempdata('admin_remember', true, 30 * 24 * 60 * 60);
-                    
+
                     // Set remember me cookie (30 days)
                     $cookieData = [
                         'admin_id' => $admin['id'],
                         'admin_employee_id' => $admin['employee_id'],
                         'admin_email' => $admin['email']
                     ];
-                    
+
                     setcookie('remember_admin', base64_encode(json_encode($cookieData)), time() + (30 * 24 * 60 * 60), '/', '', false, true);
                 }
 
@@ -108,11 +108,11 @@ class Auth extends BaseController
         return view('auth/login');
     }
 
-     public function register()
+    public function register()
     {
         if ($this->request->getMethod() === 'POST') {
             log_message('info', 'Registration attempt started');
-            
+
             $validation = \Config\Services::validation();
             $validation->setRules([
                 'employee_id' => 'required|integer',
@@ -125,25 +125,25 @@ class Auth extends BaseController
                 log_message('error', 'Validation failed: ' . json_encode($validation->getErrors()));
                 return redirect()->back()->withInput()->with('errors', $validation->getErrors());
             }
-            
+
             try {
                 $employeeId = $this->request->getPost('employee_id');
                 $email = $this->request->getPost('email');
-                
+
                 // Step 1: Check if user credentials exist in external Promag database
-                $user = $this->promagUserModel->validateUserCredentials($employeeId, $email);
+                $user = $this->artimuUserModel->validateUserCredentials($employeeId, $email);
                 if (!$user) {
                     log_message('info', 'User credentials not found in Promag database - ID: ' . $employeeId . ', Email: ' . $email);
                     return redirect()->back()->withInput()->with('error', 'USER CREDENTIALS NOT FOUND. The provided ID and email combination does not exist in the system. Please contact your administrator.');
                 }
-                
+
                 // Step 3: Check if this employee already has an admin account
                 $existingAdmin = $this->adminModel->where('employee_id', $employeeId)->first();
                 if ($existingAdmin) {
                     log_message('info', 'Employee already has admin account: ' . $employeeId);
                     return redirect()->back()->withInput()->with('error', 'ADMIN ACCOUNT ALREADY EXISTS for this employee ID.');
                 }
-                
+
                 // Step 4: Check if email is already used by another admin
                 $existingEmailAdmin = $this->adminModel->where('email', $email)->first();
                 if ($existingEmailAdmin) {
@@ -157,7 +157,7 @@ class Auth extends BaseController
                     'email' => $email,
                     'password' => $this->request->getPost('password')
                 ];
-                
+
                 log_message('info', 'Attempting to create admin with data: ' . json_encode(array_merge($data, ['password' => '[HIDDEN]'])));
 
                 if ($this->adminModel->createAdmin($data)) {
@@ -184,14 +184,13 @@ class Auth extends BaseController
             $db = \Config\Database::connect();
             $query = $db->query('SELECT 1 as test');
             $result = $query->getResult();
-            
+
             echo "Database connection: OK<br>";
             echo "Test query result: " . json_encode($result) . "<br>";
-            
+
             // Test admin table
             $adminCount = $db->table('admin')->countAllResults();
             echo "Admin table exists with {$adminCount} records<br>";
-            
         } catch (\Exception $e) {
             echo "Database error: " . $e->getMessage();
         }
@@ -201,37 +200,35 @@ class Auth extends BaseController
     {
         try {
             echo "<h3>Testing Promag Database Connection</h3>";
-            
-            // Test Promag database connection
-            $user = $this->promagUserModel->findById('9999999999');
-            
+
+            // Test Artimu database connection
+            $user = $this->artimuUserModel->findById('9999999999');
+
             if ($user) {
-                echo "<p style='color: green;'>✓ Promag database connection: SUCCESSFUL</p>";
+                echo "<p style='color: green;'>✓ Artimu database connection: SUCCESSFUL</p>";
                 echo "<p>Found user: {$user['fullname']} ({$user['email']})</p>";
-                
+
                 // Test user validation
-                $validUser = $this->promagUserModel->validateUserCredentials('9999999999', 'adminwru4@gmail.com');
-                
+                $validUser = $this->artimuUserModel->validateUserCredentials('9999999999', 'adminwru4@gmail.com');
+
                 if ($validUser) {
                     echo "<p style='color: green;'>✓ User validation: SUCCESSFUL</p>";
                     echo "<p>Validated user: {$validUser['username']} - {$validUser['fullname']}</p>";
                 } else {
                     echo "<p style='color: red;'>✗ User validation: FAILED</p>";
                 }
-                
+
                 // Test invalid credentials
-                $invalidUser = $this->promagUserModel->validateUserCredentials('invalid', 'invalid@test.com');
-                
+                $invalidUser = $this->artimuUserModel->validateUserCredentials('invalid', 'invalid@test.com');
+
                 if (!$invalidUser) {
                     echo "<p style='color: green;'>✓ Invalid credentials properly rejected</p>";
                 } else {
                     echo "<p style='color: red;'>✗ Invalid credentials incorrectly accepted</p>";
                 }
-                
             } else {
                 echo "<p style='color: red;'>✗ Promag database connection: FAILED</p>";
             }
-            
         } catch (\Exception $e) {
             echo "<p style='color: red;'>Error: " . $e->getMessage() . "</p>";
             echo "<p>Stack trace: " . $e->getTraceAsString() . "</p>";
@@ -244,7 +241,7 @@ class Auth extends BaseController
         if (isset($_COOKIE['remember_admin'])) {
             setcookie('remember_admin', '', time() - 3600, '/', '', false, true);
         }
-        
+
         session()->destroy();
         return redirect()->to('/auth/login')->with('success', 'Logout berhasil!');
     }

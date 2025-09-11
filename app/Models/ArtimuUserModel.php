@@ -4,7 +4,7 @@ namespace App\Models;
 
 use CodeIgniter\Model;
 
-class PromagUserModel extends Model
+class ArtimuUserModel extends Model
 {
     protected $table = 'users';
     protected $primaryKey = 'id';
@@ -83,8 +83,8 @@ class PromagUserModel extends Model
     public function validateUserCredentials($id, $email)
     {
         return $this->where('id', $id)
-                   ->where('email', $email)
-                   ->first();
+            ->where('email', $email)
+            ->first();
     }
 
     /**
