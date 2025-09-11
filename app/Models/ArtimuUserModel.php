@@ -82,7 +82,8 @@ class ArtimuUserModel extends Model
      */
     public function validateUserCredentials($id, $email)
     {
-        return $this->where('id', $id)
+        return $this
+            ->where('id', $id)
             ->where('email', $email)
             ->first();
     }

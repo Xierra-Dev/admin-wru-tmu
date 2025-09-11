@@ -130,11 +130,11 @@ class Auth extends BaseController
                 $employeeId = $this->request->getPost('employee_id');
                 $email = $this->request->getPost('email');
 
-                // Step 1: Check if user credentials exist in external Promag database
+                // Step 1: Check if user credentials exist in external Artimu database
                 $user = $this->artimuUserModel->validateUserCredentials($employeeId, $email);
                 if (!$user) {
-                    log_message('info', 'User credentials not found in Promag database - ID: ' . $employeeId . ', Email: ' . $email);
-                    return redirect()->back()->withInput()->with('error', 'USER CREDENTIALS NOT FOUND. The provided ID and email combination does not exist in the system. Please contact your administrator.');
+                    log_message('info', 'User credentials not found in Artimu database - ID: ' . $employeeId . ', Email: ' . $email);
+                    return redirect()->back()->withInput()->with('error', 'USER CREDENTIALS NOT FOUND. The provided ID and Email combination do not exist in the system. Please contact your administrator.');
                 }
 
                 // Step 3: Check if this employee already has an admin account
