@@ -7,6 +7,7 @@ use App\Models\PeopleModel;
 use App\Models\DestinationModel;
 use App\Models\VehicleModel;
 use App\Models\MLocModel;
+use App\Models\ArtimuUserModel;
 
 class Dashboard extends BaseController
 {
@@ -35,9 +36,9 @@ class Dashboard extends BaseController
         $timezone = new \DateTimeZone('Asia/Jakarta'); // UTC+7
         $currentTime = new \DateTime('now', $timezone);
         $currentHour = (int) $currentTime->format('H');
-        
+
         // Determine greeting based on time
-        $greeting = 'Good Evening'; // Default
+        $greeting = 'Hello'; // Default
         if ($currentHour >= 0 && $currentHour < 12) {
             $greeting = 'Good Morning';
         } elseif ($currentHour >= 12 && $currentHour < 18) {
@@ -84,7 +85,7 @@ class Dashboard extends BaseController
 
         if ($this->request->getMethod() === 'POST') {
             $validation = \Config\Services::validation();
-            
+
             // Set validation rules
             $validation->setRules([
                 'employee_id' => 'required|min_length[3]|max_length[255]',
@@ -174,7 +175,7 @@ class Dashboard extends BaseController
 
         if ($this->request->getMethod() === 'POST') {
             $validation = \Config\Services::validation();
-            
+
             // Set validation rules
             $validation->setRules([
                 'current_password' => 'required',
